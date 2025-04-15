@@ -10,8 +10,8 @@
 #define PADDING_WIDTH 10
 
 
-int
-ustrlen(const char *s)
+static int
+u8strlen(const char *s)
 {
 	int l = 0;
 	while (*s) {
@@ -22,8 +22,8 @@ ustrlen(const char *s)
 	return l;
 }
 
-void
-uputnc(const char *s, int n)
+static void
+u8putnc(const char *s, int n)
 {
 	int m = 0;
 	while (m < n) {
@@ -31,6 +31,15 @@ uputnc(const char *s, int n)
 		if ((*++s & 0xC0) != 0x80)
 			m++;
 	}
+}
+
+static const char *
+u8index(const char *s, int i)
+{
+	while (*s && i - 1)
+		if ((*++s & 0xC0) != 0x80)
+			i--;
+	return s;
 }
 
 int
@@ -58,7 +67,7 @@ main ()
 
 	int progress = 100 * secs / secs_total;
 
-	int info_width = ustrlen(artist) + ustrlen(title) + 3;
+	int info_width = u8strlen(artist) + u8strlen(title) + 3;
 	if (info_width <= FIELD_WIDTH) {
 		printf("[ %s - %s ][%d%%]\n",
 		       artist,
@@ -69,13 +78,16 @@ main ()
 	}
 
 	int padding2 = FPS - (info_width + PADDING_WIDTH) % FPS;
-	int text_length = (info_width + PADDING_WIDTH + padding2);
+	int text_length = (strlen(artist)
+			   + strlen(title)
+			   + PADDING_WIDTH
+			   + padding2);
 	char *text = malloc(text_length + 1);
 	memset(stpcpy(stpcpy(stpcpy(text, artist),
 			     " - "),
 		      title),
 	       0x20,
-	       (PADDING_WIDTH+padding2)); // assumes last character of inof is not multibyte
+	       (PADDING_WIDTH+padding2));
 	text[text_length] = '\0';
 
 	int scroll_length = text_length * 3;
@@ -96,7 +108,7 @@ main ()
 	frames += (time.tv_nsec / 100000000) * (FPS / 10.0);
 
 	fputs("[ ", stdout);
-	uputnc(scroll + frames, FIELD_WIDTH); // fails for multibyte
+	u8putnc(u8index(scroll, frames), FIELD_WIDTH);
 	printf(" ][%d%%]\n", progress);
 
 	mpd_connection_free(conn);
