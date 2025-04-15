@@ -21,4 +21,4 @@ install: all
 	cp -f sb-track ${PREFIX}/bin
 
 clean:
-	rm -f sb-track
+	rm -f *.o sb-track
