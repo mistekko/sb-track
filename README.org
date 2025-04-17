@@ -1,0 +1,51 @@
+* About
+When displaying long song names in the status bar they either take up way too much space or get unpleasantly truncated. This program ammends both those issues by displaying only part of a song's name at once, and `scrolling' so that over a period of time one sees the entire text.
+Originally it was written in sh. This caused issues since sh is not a very fast language and the logic I came up with was somewhat complicated, requiring ample use of external programs. sb-track.sh took 20ms to execute on my machine, which I do not believe is acceptable. The C version, according to =time sb-track=, takes 0ms. This is fast enough for me.
+
+Since many people (namely me) listen to non-American music, I have included support for UTF-8, which is the format MPD responds to queries with. This sopport means that non-ASCII characters can be displayed without error. Note that wider-than-normal characters (such as Chinese characters, Japanese kana, Korean hangul, etc.) will make the display wider by increasing the number of pixels it uses to display the same number of characters. I cannot think of a way to fix this, so I have unfortunately not done so. 
+
+* Compilation and installation:
+
+#+BEGIN_SRC sh
+  make
+  make install
+#+END_SRC
+
+* Usage
+#+BEGIN_SRC sh
+  $ sb-track # single invocation
+#+END_SRC
+
+Since neither dwmblocks nor dwmblocks-async support non-integer update intervals out of the box, I recommend a signal-based approach:
+For example
+#+BEGIN_SRC sh
+  while true; do
+  	sleep 0.1
+  	/usr/bin/kill -s 35 $(pidof dwmblocks)
+  done
+#+END_SRC
+To do it this way, you need to tell dwmblocks which signal you plan on using.
+
+** dwmblocks
+Add the following or similar to your blocks.h
+#+BEGIN_SRC c
+  {"",		"sb-track",		0,			35},
+#+END_SRC
+
+** dwmblocks-async
+Add the following or similar to your BLOCKS(X) macro in config.h. Note that dwmblocks-async adds 34 to whatever number you use.
+#+BEGIN_SRC c
+  X("", "sb-track",   0, 1)			\
+#+END_SRC
+    
+* Customisation
+Customisation is performed directly upon the source code. I have provided three macros which I find allow me to customise sb-track as much as necessary
+
+** FPS
+The numbers of characters to scroll each second. If you change this then remember to adjust your signalling frequency accordingly. I find that the signalling frequency should be significantly /less/ than 1/FPS times per second in order to consistently get the signal sent on time.
+
+** FIELD_WIDTH
+The number of characters to print between `[ ' and ` ]'. Any `%song% - %artist%' length which exceeds this will be scrolled.
+
+** PADDING_WIDTH
+The number of space characters to put between each instance of `%song% - %artist%', which may be slightly modified later in the code in order to simplify logic later in the code (more spaces may be added so that a complete cycle takes an integer number of seconds).
