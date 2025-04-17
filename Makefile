@@ -9,11 +9,8 @@ OBJ = ${SRC:.c=.o}
 
 all: sb-track
 
-.c.o:
-	${CC} -c ${CFLAGS} $<
-
-sb-track: ${OBJ}
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
+sb-track:
+	${CC} -o $@ ${SRC} ${LDFLAGS} ${CFLAGS}
 
 install: all
 	mkdir -p ${PREFIX}/bin
@@ -21,4 +18,4 @@ install: all
 	cp -f sb-track ${PREFIX}/bin
 
 clean:
-	rm -f *.o sb-track
+	rm -f ${OBJ} sb-track
