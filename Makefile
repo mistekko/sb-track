@@ -9,7 +9,7 @@ OBJ = ${SRC:.c=.o}
 
 all: sb-track
 
-sb-track:
+sb-track: sb-track.c
 	${CC} -o $@ ${SRC} ${LDFLAGS} ${CFLAGS}
 
 install: all
